@@ -12,7 +12,8 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="8">
 
         <TextView
             android:id="@+id/tv_content"
@@ -21,5 +22,12 @@
             android:textColor="#000000"
             android:textSize="18sp"/>
     </ScrollView>
+
+    <Button
+        android:id="@+id/btn_upload"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="上传文件"/>
 
 </LinearLayout>

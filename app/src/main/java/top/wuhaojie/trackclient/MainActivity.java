@@ -1,5 +1,6 @@
 package top.wuhaojie.trackclient;
 
+
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -11,18 +12,26 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+
+import com.loopj.android.http.AsyncHttpResponseHandler;
+
+import org.apache.http.Header;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import top.wuhaojie.trackclient.constant.Constants;
 import top.wuhaojie.trackclient.utils.FileUtils;
+import top.wuhaojie.trackclient.utils.HttpUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -50,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
      */
     TextView mTextContent;
     private ProgressDialog mFileOpenProgressDialog;
+    private Button mBtnUpload;
+    private String mFilePath;
+    private ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initViews() {
         setSupportActionBar(mToolbar);
+        mBtnUpload = (Button) findViewById(R.id.btn_upload);
         mTextContent = (TextView) findViewById(R.id.tv_content);
         mClMain = (CoordinatorLayout) findViewById(R.id.cl_main);
         mFabOpenFile = (FloatingActionButton) findViewById(R.id.fab_openfile);
@@ -76,6 +89,64 @@ public class MainActivity extends AppCompatActivity {
         });
         mFileOpenProgressDialog = new ProgressDialog(this);
         mFileOpenProgressDialog.setTitle("请稍候...");
+        mBtnUpload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                uploadFile();
+
+            }
+        });
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    }
+
+    /**
+     * 文件上传
+     */
+    private void uploadFile() {
+
+        mProgressDialog.setTitle("请稍候");
+        mProgressDialog.show();
+        mProgressDialog.setMessage("正在上传文件(1/3)");
+        if (TextUtils.isEmpty(mFilePath)) {
+            showFileError();
+            return;
+        }
+        try {
+            HttpUtils.uploadFile(new File(mFilePath), "http://", new AsyncHttpResponseHandler() {
+
+                private boolean isFirst = true;
+
+                @Override
+                public void onSuccess(int i, Header[] headers, byte[] bytes) {
+                    requestProgress();
+                }
+
+                @Override
+                public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
+
+                }
+
+
+                @Override
+                public void onProgress(long bytesWritten, long totalSize) {
+                    super.onProgress(bytesWritten, totalSize);
+                    if (isFirst) {
+                        isFirst = false;
+                        mFileOpenProgressDialog.setMax((int) totalSize);
+                    }
+                    mFileOpenProgressDialog.setProgress((int) bytesWritten);
+
+                }
+            });
+        } catch (FileNotFoundException e) {
+            showFileError();
+        }
+
+    }
+
+    private void requestProgress() {
+        
     }
 
     /**
@@ -105,14 +176,14 @@ public class MainActivity extends AppCompatActivity {
                     // 获取数据
                     Uri uri = data.getData();
                     // 获取文件路径
-                    String path = FileUtils.getPath(this, uri);
-                    Log.d(TAG, "FILE PATH = " + (path == null ? "null" : path) + " URI = " + uri.getScheme());
-                    if (path == null) {
+                    mFilePath = FileUtils.getPath(this, uri);
+                    Log.d(TAG, "FILE PATH = " + (mFilePath == null ? "null" : mFilePath) + " URI = " + uri.getScheme());
+                    if (mFilePath == null) {
                         showFileError();
                         return;
                     }
                     // 获取文本内容并显示
-                    setFileContent(path, mTextContent, mFileOpenProgressDialog);
+                    setFileContent(mFilePath, mTextContent, mFileOpenProgressDialog);
                 } else {
                     showFileError();
                 }
@@ -158,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                textContent.append(finalLine+"\n");
+                                textContent.append(finalLine + "\n");
                             }
                         });
                     }
@@ -187,5 +258,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
 
 }
