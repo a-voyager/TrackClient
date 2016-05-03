@@ -16,7 +16,13 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
 
+    /**
+     * 协调布局
+     */
     private CoordinatorLayout mClMain;
+    /**
+     * 悬浮按钮——打开文件
+     */
     private FloatingActionButton mFabOpenFile;
 
 
@@ -29,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * 初始化视图
+     */
     private void initViews() {
         setSupportActionBar(mToolbar);
         mClMain = (CoordinatorLayout) findViewById(R.id.cl_main);
