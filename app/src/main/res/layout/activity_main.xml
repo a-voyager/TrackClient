@@ -28,28 +28,37 @@
     <include layout="@layout/content_main"/>
 
 
-    <com.getbase.floatingactionbutton.FloatingActionsMenu
+    <!--<com.getbase.floatingactionbutton.FloatingActionsMenu-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_gravity="bottom|end"-->
+    <!--android:layout_margin="@dimen/fab_margin"-->
+    <!--fab:fab_addButtonColorNormal="@color/pink"-->
+    <!--fab:fab_addButtonColorPressed="@color/pink_pressed"-->
+    <!--fab:fab_expandDirection="up"-->
+    <!--fab:fab_labelStyle="@style/menu_labels_style">-->
+
+    <!--<com.getbase.floatingactionbutton.FloatingActionButton-->
+    <!--android:id="@+id/fab_openfile"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--fab:fab_colorNormal="@color/pink"-->
+    <!--fab:fab_colorPressed="@color/pink_pressed"-->
+    <!--fab:fab_icon="@mipmap/ic_launcher"-->
+    <!--fab:fab_labelStyle="@style/menu_labels_style"-->
+    <!--fab:fab_title="打开文件"/>-->
+
+
+    <!--</com.getbase.floatingactionbutton.FloatingActionsMenu>-->
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_openfile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        fab:fab_addButtonColorNormal="@color/pink"
-        fab:fab_addButtonColorPressed="@color/pink_pressed"
-        fab:fab_expandDirection="up"
-        fab:fab_labelStyle="@style/menu_labels_style">
-
-        <com.getbase.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab_openfile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            fab:fab_colorNormal="@color/pink"
-            fab:fab_colorPressed="@color/pink_pressed"
-            fab:fab_icon="@mipmap/ic_launcher"
-            fab:fab_labelStyle="@style/menu_labels_style"
-            fab:fab_title="打开文件"/>
-
-
-    </com.getbase.floatingactionbutton.FloatingActionsMenu>
+        android:src="@mipmap/ic_launcher"/>
 
 
 </android.support.design.widget.CoordinatorLayout>
