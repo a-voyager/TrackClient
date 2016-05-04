@@ -10,10 +10,30 @@
     tools:context="top.wuhaojie.trackclient.MainActivity"
     tools:showIn="@layout/activity_main">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_upload"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="上传文件"/>
+
+        <Button
+            android:id="@+id/btn_receive"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="取回文件"/>
+    </LinearLayout>
+
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="8">
+        android:layout_height="match_parent">
 
         <TextView
             android:id="@+id/tv_content"
@@ -23,11 +43,5 @@
             android:textSize="18sp"/>
     </ScrollView>
 
-    <Button
-        android:id="@+id/btn_upload"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:text="上传文件"/>
 
 </LinearLayout>

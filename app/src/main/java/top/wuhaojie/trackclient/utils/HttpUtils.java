@@ -4,6 +4,8 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
+import org.apache.http.Header;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -35,4 +37,25 @@ public class HttpUtils {
         }
         sHttpClient.post(addr, requestParams, handler);
     }
+
+
+    public static String requestResponse(String addr) {
+        final String[] response = {null};
+        if (sHttpClient == null) {
+            sHttpClient = new AsyncHttpClient();
+        }
+        sHttpClient.post(addr, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int i, Header[] headers, byte[] bytes) {
+                response[0] = new String(bytes);
+            }
+
+            @Override
+            public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
+
+            }
+        });
+        return response[0];
+    }
+
 }

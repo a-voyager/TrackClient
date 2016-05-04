@@ -26,6 +26,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -62,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtnUpload;
     private String mFilePath;
     private ProgressDialog mProgressDialog;
+    private Button mBtnReceive;
+    private boolean mIsFinishedCoverted = false;
+    private String mFileName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         mBtnUpload = (Button) findViewById(R.id.btn_upload);
         mTextContent = (TextView) findViewById(R.id.tv_content);
         mClMain = (CoordinatorLayout) findViewById(R.id.cl_main);
+        mBtnReceive = (Button) findViewById(R.id.btn_receive);
         mFabOpenFile = (FloatingActionButton) findViewById(R.id.fab_openfile);
         mFabOpenFile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,6 +104,18 @@ public class MainActivity extends AppCompatActivity {
         });
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mBtnReceive.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (TextUtils.isEmpty(mFilePath) || TextUtils.isEmpty(mFileName)) {
+                    Snackbar.make(mClMain, "请先上传文件", Snackbar.LENGTH_SHORT).show();
+                    return;
+                }
+                Uri uri = Uri.parse(Constants.DOWNLOAD_ADDR + mFileName);
+                Intent downloadIntent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(downloadIntent);
+            }
+        });
     }
 
     /**
@@ -105,21 +123,41 @@ public class MainActivity extends AppCompatActivity {
      */
     private void uploadFile() {
 
-        mProgressDialog.setTitle("请稍候");
+//        mProgressDialog.setTitle("请稍候");
         mProgressDialog.show();
-        mProgressDialog.setMessage("正在上传文件(1/3)");
+        mProgressDialog.setMessage("请稍候");
+        mProgressDialog.setTitle("正在上传文件");
         if (TextUtils.isEmpty(mFilePath)) {
             showFileError();
             return;
         }
+
+
+        String[] fileStrs = mFilePath.split("/");
+        mFileName = fileStrs[fileStrs.length - 1];
+
         try {
-            HttpUtils.uploadFile(new File(mFilePath), "http://", new AsyncHttpResponseHandler() {
+            HttpUtils.uploadFile(new File(mFilePath), Constants.UPLOAD_ADDR, new AsyncHttpResponseHandler() {
 
                 private boolean isFirst = true;
 
                 @Override
                 public void onSuccess(int i, Header[] headers, byte[] bytes) {
-                    requestProgress();
+//                    requestProgress();
+                    mProgressDialog.dismiss();
+                    Snackbar.make(mClMain, "上传完成, 等待云端处理数据", Snackbar.LENGTH_SHORT).show();
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Snackbar.make(mClMain, "云端数据处理完成, 可以取回数据", Snackbar.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }, 2000);
+                    mIsFinishedCoverted = true;
                 }
 
                 @Override
@@ -133,9 +171,9 @@ public class MainActivity extends AppCompatActivity {
                     super.onProgress(bytesWritten, totalSize);
                     if (isFirst) {
                         isFirst = false;
-                        mFileOpenProgressDialog.setMax((int) totalSize);
+                        mProgressDialog.setMax((int) totalSize);
                     }
-                    mFileOpenProgressDialog.setProgress((int) bytesWritten);
+                    mProgressDialog.setProgress((int) bytesWritten);
 
                 }
             });
@@ -146,7 +184,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestProgress() {
-        
+
+        mProgressDialog.setTitle("正在转换文件(2/2)");
+//        mProgressDialog.setProgress(0);
+
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+
+                String s = HttpUtils.requestResponse(Constants.PROGRESS_ADDR);
+                if (s != null && !s.isEmpty() && !"null".equals(s)) {
+                    final String[] progress = s.split("#");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            mProgressDialog.setMax(Integer.parseInt(progress[1]));
+                            mProgressDialog.setProgress(Integer.parseInt(progress[0]));
+                        }
+                    });
+                } else {
+                    return;
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mProgressDialog.setProgress(mProgressDialog.getProgress() + 1);
+                    }
+                });
+            }
+        };
+        new Timer().schedule(timerTask, 0, 500);
     }
 
     /**
@@ -224,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
                     BufferedReader reader = new BufferedReader(new FileReader(file));
                     String line = null;
                     int i = 0;
-                    while ((line = reader.readLine()) != null) {
+                    while ((line = reader.readLine()) != null && (i++) <= 300) {
                         final String finalLine = line;
                         runOnUiThread(new Runnable() {
                             @Override
