@@ -16,6 +16,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtnReceive;
     private boolean mIsFinishedCoverted = false;
     private String mFileName;
+    private LinearLayout mNone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
         mBtnUpload = (Button) findViewById(R.id.btn_upload);
         mTextContent = (TextView) findViewById(R.id.tv_content);
+        mNone = (LinearLayout) findViewById(R.id.ll_none);
         mClMain = (CoordinatorLayout) findViewById(R.id.cl_main);
         mBtnReceive = (Button) findViewById(R.id.btn_receive);
         mFabOpenFile = (FloatingActionButton) findViewById(R.id.fab_openfile);
@@ -325,6 +328,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         dialog.dismiss();
+                        mNone.setVisibility(View.INVISIBLE);
                     }
                 });
             }
