@@ -107,11 +107,11 @@ public class MainActivity extends AppCompatActivity {
         mBtnReceive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (TextUtils.isEmpty(mFilePath) || TextUtils.isEmpty(mFileName)) {
+                if (TextUtils.isEmpty(mFilePath) || TextUtils.isEmpty(mFileName) || !mIsFinishedCoverted) {
                     Snackbar.make(mClMain, "请先上传文件", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
-                Uri uri = Uri.parse(Constants.DOWNLOAD_ADDR + mFileName);
+                Uri uri = Uri.parse(Constants.DOWNLOAD_ADDR);
                 Intent downloadIntent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(downloadIntent);
             }
@@ -123,14 +123,16 @@ public class MainActivity extends AppCompatActivity {
      */
     private void uploadFile() {
 
-//        mProgressDialog.setTitle("请稍候");
-        mProgressDialog.show();
-        mProgressDialog.setMessage("请稍候");
-        mProgressDialog.setTitle("正在上传文件");
-        if (TextUtils.isEmpty(mFilePath)) {
+        if (TextUtils.isEmpty(mFilePath) || !new File(mFilePath).exists()) {
             showFileError();
             return;
         }
+
+//        mProgressDialog.setTitle("请稍候");
+//        mProgressDialog.setTitle("请稍候");
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mProgressDialog.setMessage("正在上传文件");
+        mProgressDialog.show();
 
 
         String[] fileStrs = mFilePath.split("/");
@@ -162,7 +164,8 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
-
+                    mProgressDialog.dismiss();
+                    Snackbar.make(mClMain, "上传失败，请稍后再试", Snackbar.LENGTH_SHORT).show();
                 }
 
 
@@ -174,6 +177,14 @@ public class MainActivity extends AppCompatActivity {
                         mProgressDialog.setMax((int) totalSize);
                     }
                     mProgressDialog.setProgress((int) bytesWritten);
+
+                    if (bytesWritten >= totalSize) {
+                        mProgressDialog.dismiss();
+                        mProgressDialog = new ProgressDialog(MainActivity.this);
+                        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                        mProgressDialog.setMessage("正在转换数据，请稍等...");
+                        mProgressDialog.show();
+                    }
 
                 }
             });
@@ -265,6 +276,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showFileError() {
+        if (mFileOpenProgressDialog != null && mFileOpenProgressDialog.isShowing())
+            mFileOpenProgressDialog.dismiss();
+        if (mProgressDialog != null && mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
         Snackbar.make(mClMain, "请选择正确的文件！", Snackbar.LENGTH_SHORT).show();
     }
 

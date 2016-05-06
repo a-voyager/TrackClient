@@ -35,6 +35,9 @@ public class HttpUtils {
         if (sHttpClient == null) {
             sHttpClient = new AsyncHttpClient();
         }
+        sHttpClient.setResponseTimeout(60 * 1000);
+        sHttpClient.setTimeout(60 * 1000);
+        sHttpClient.setConnectTimeout(60 * 1000);
         sHttpClient.post(addr, requestParams, handler);
     }
 
