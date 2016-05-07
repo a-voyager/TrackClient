@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="#eee"
+        android:gravity="center"
+        android:text="服务器设置"
+        android:textColor="#333"
+        android:textSize="18sp"/>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+
+        <EditText
+            android:id="@+id/et_server_ip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="请输入服务器IP地址"/>
+    </android.support.design.widget.TextInputLayout>
+
+</LinearLayout>

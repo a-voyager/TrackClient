@@ -16,23 +16,38 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btn_upload"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/button"
-            android:text="上传文件"
-            android:textSize="16sp"/>
 
-        <Button
-            android:id="@+id/btn_receive"
+        <com.balysv.materialripple.MaterialRippleLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/button"
-            android:text="取回文件"
-            android:textSize="16sp"/>
+            app:mrl_rippleColor="?attr/colorPrimary"
+            app:mrl_rippleOverlay="true">
+
+            <Button
+                android:id="@+id/btn_upload"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/normal"
+                android:text="上传文件"
+                android:textSize="16sp"/>
+        </com.balysv.materialripple.MaterialRippleLayout>
+
+        <com.balysv.materialripple.MaterialRippleLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:mrl_rippleColor="?attr/colorPrimary"
+            app:mrl_rippleOverlay="true">
+
+            <Button
+                android:id="@+id/btn_receive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/normal"
+                android:text="取回文件"
+                android:textSize="16sp"/>
+        </com.balysv.materialripple.MaterialRippleLayout>
     </LinearLayout>
 
     <FrameLayout
@@ -41,14 +56,16 @@
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:overScrollMode="ifContentScrolls">
 
             <TextView
                 android:id="@+id/tv_content"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_margin="5dp"
                 android:textColor="#000000"
-                android:textSize="18sp"/>
+                android:textSize="14sp"/>
 
         </ScrollView>
 

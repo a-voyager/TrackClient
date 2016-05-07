@@ -2,7 +2,10 @@ package top.wuhaojie.trackclient;
 
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,12 +13,19 @@ import android.os.Message;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -25,8 +35,9 @@ import org.apache.http.Header;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -69,20 +80,27 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsFinishedCoverted = false;
     private String mFileName;
     private LinearLayout mNone;
+    private SharedPreferences mSharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        initVariables();
         initViews();
 
+    }
+
+    private void initVariables() {
+        mSharedPreferences = getSharedPreferences("config", MODE_PRIVATE);
     }
 
     /**
      * 初始化视图
      */
     private void initViews() {
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
         mBtnUpload = (Button) findViewById(R.id.btn_upload);
         mTextContent = (TextView) findViewById(R.id.tv_content);
@@ -114,7 +132,13 @@ public class MainActivity extends AppCompatActivity {
                     Snackbar.make(mClMain, "请先上传文件", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
-                Uri uri = Uri.parse(Constants.DOWNLOAD_ADDR);
+                String addr = mSharedPreferences.getString(Constants.CONFIG_IP, "");
+                if (addr.isEmpty()) {
+                    addr = Constants.DOWNLOAD_ADDR_BAK;
+                } else {
+                    addr += Constants.TAIL_DOWNLOAD_ADDR;
+                }
+                Uri uri = Uri.parse(addr);
                 Intent downloadIntent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(downloadIntent);
             }
@@ -141,8 +165,15 @@ public class MainActivity extends AppCompatActivity {
         String[] fileStrs = mFilePath.split("/");
         mFileName = fileStrs[fileStrs.length - 1];
 
+        String addr = mSharedPreferences.getString(Constants.CONFIG_IP, "");
+        if (addr.isEmpty()) {
+            addr = Constants.UPLOAD_ADDR_BAK;
+        } else {
+            addr += Constants.TAIL_UPLOAD_ADDR;
+        }
+
         try {
-            HttpUtils.uploadFile(new File(mFilePath), Constants.UPLOAD_ADDR, new AsyncHttpResponseHandler() {
+            HttpUtils.uploadFile(new File(mFilePath), addr, new AsyncHttpResponseHandler() {
 
                 private boolean isFirst = true;
 
@@ -206,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                String s = HttpUtils.requestResponse(Constants.PROGRESS_ADDR);
+                String s = HttpUtils.requestResponse(Constants.PROGRESS_ADDR_BAK);
                 if (s != null && !s.isEmpty() && !"null".equals(s)) {
                     final String[] progress = s.split("#");
                     runOnUiThread(new Runnable() {
@@ -308,10 +339,11 @@ public class MainActivity extends AppCompatActivity {
 
                 File file = new File(path);
                 try {
-                    BufferedReader reader = new BufferedReader(new FileReader(file));
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "Unicode"));
                     String line = null;
                     int i = 0;
-                    while ((line = reader.readLine()) != null && (i++) <= 300) {
+                    while ((line = reader.readLine()) != null && (i++) <= 500) {
                         final String finalLine = line;
                         runOnUiThread(new Runnable() {
                             @Override
@@ -348,4 +380,71 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//                builder.setTitle("服务器设置");
+                View view = LayoutInflater.from(this).inflate(R.layout.dl_settings, null);
+                builder.setView(view);
+                final EditText etServerIP = (EditText) view.findViewById(R.id.et_server_ip);
+                etServerIP.setTextColor(Color.parseColor("#000000"));
+                etServerIP.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                        if (s.toString().endsWith(".") || s.toString().endsWith("/") || s.toString().endsWith(":")) {
+                            etServerIP.setTextColor(getResources().getColor(R.color.pink));
+                        } else {
+                            etServerIP.setTextColor(Color.parseColor("#000000"));
+                        }
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+
+                    }
+                });
+
+                etServerIP.setText(mSharedPreferences.getString(Constants.CONFIG_IP, ""));
+                builder.setPositiveButton("保存", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String text = etServerIP.getText().toString().trim();
+                        if (!text.matches(Constants.WEBSITE_REGEX) || text.endsWith("/")) {
+                            Snackbar.make(mClMain, "输入的地址不合法，保存失败", Snackbar.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                            return;
+                        }
+                        SharedPreferences.Editor editor = mSharedPreferences.edit();
+                        editor.putString(Constants.CONFIG_IP, text);
+                        editor.apply();
+                    }
+                });
+                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                builder.setCancelable(false);
+                builder.show();
+                break;
+        }
+
+        return true;
+    }
 }
